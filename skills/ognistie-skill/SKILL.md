@@ -47,8 +47,6 @@ Do not add:
 - Hidden chain-of-thought or detailed reasoning
 - Any execution of the task
 
-When the output is saved to a file or consumed by a pipeline, run `python scripts/validate_routing_output.py <output-file>` before delivery.
-
 ## Examples
 
 For the virtual mouse settings-panel task:
@@ -64,8 +62,6 @@ For a production permission migration:
 Modelo indicado: GPT-5.6 Sol — Provedor: OpenAI.
 Motivo: Mudança crítica de segurança e produção exige raciocínio avançado para reduzir risco de acesso indevido ou indisponibilidade.
 ```
-
-Read [examples.md](references/examples.md) only when additional calibration is needed. Read [evals.md](references/evals.md) when changing or productionizing this router.
 
 ## Security boundary
 

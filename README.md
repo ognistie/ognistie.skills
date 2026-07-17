@@ -68,7 +68,7 @@ $ognistie-skill Descreva aqui a tarefa que deseja analisar.
 
 ## Contribuindo
 
-Leia [CONTRIBUTING.md](CONTRIBUTING.md), crie uma branch, faça as alterações e abra um pull request.
+Faça um fork, crie uma branch com uma alteração objetiva e abra um pull request explicando o que foi modificado.
 
 ## Inspiração
 

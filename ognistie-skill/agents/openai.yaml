@@ -1,4 +1,0 @@
-interface:
-  display_name: "ognistie.Skill."
-  short_description: "Recomenda o melhor modelo antes da tarefa"
-  default_prompt: "Use $ognistie-skill para analisar esta tarefa e responder somente com o modelo, o provedor e um motivo breve."

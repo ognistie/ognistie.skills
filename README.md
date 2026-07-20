@@ -56,6 +56,16 @@ Use:
 
 ## Guia para OpenAI Codex
 
+Instalação direta pelo catálogo de skills do Codex:
+
+```text
+$skill-installer Instale https://github.com/ognistie/ognistie.skills/tree/main/skills/ognistie-skill
+```
+
+Se a skill não aparecer imediatamente após a instalação, reinicie o Codex. Até que ela seja aceita no catálogo oficial `openai/skills`, a instalação deve informar a URL completa; o nome curto `$skill-installer ognistie-skill` fica disponível somente após inclusão em `skills/.curated/ognistie-skill`.
+
+Instalação manual:
+
 macOS ou Linux:
 
 ```bash
@@ -85,6 +95,8 @@ python -B -m unittest discover -s tests -v
 ```
 
 Mudanças no roteamento devem atualizar `evals/evals.json` e usar documentação oficial para modelos, preços e capacidades.
+
+Para propor a skill ao catálogo oficial, faça um fork de `openai/skills`, adicione a pasta em `skills/.curated/ognistie-skill` e abra um pull request para avaliação dos mantenedores.
 
 ## Inspiração
 

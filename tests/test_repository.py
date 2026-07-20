@@ -52,6 +52,7 @@ class SkillStructureTests(unittest.TestCase):
     def test_required_runtime_files_exist(self):
         required = (
             "SKILL.md",
+            "LICENSE.txt",
             "agents/openai.yaml",
             "references/routing-policy.md",
             "references/model-catalog.json",

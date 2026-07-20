@@ -7,7 +7,7 @@ Roteador pré-tarefa para escolher o modelo de menor custo que atende ao risco e
 | Ambiente | Skill | Invocação | Modelos recomendados |
 | --- | --- | --- | --- |
 | OpenAI Codex | `skills/codex/ognistie-skill` | `$ognistie-skill <tarefa>` | OpenAI |
-| Claude Code | `skills/claude/ognistie-skill` | `/ognistie-skill <tarefa>` | Anthropic |
+| Claude Code | `skills/claude/ognistie-skill` | `/ognistie-skill:ognistie-skill <tarefa>` | Anthropic |
 
 Cada distribuição é autônoma e contém somente `SKILL.md`, licença, referências, validador e metadados exigidos pelo respectivo ambiente.
 
@@ -29,7 +29,57 @@ O nome curto no `$skill-installer` dependerá da aceitação da distribuição C
 
 ## Claude Code
 
-Clone o repositório e copie a distribuição Claude para sua pasta pessoal.
+### Instalação recomendada
+
+Pré-requisito: use uma versão recente do Claude Code que reconheça o comando `/plugin`. Se o comando não aparecer, atualize o Claude Code e reinicie a sessão.
+
+Dentro do Claude Code, execute cada comando separadamente:
+
+```text
+/plugin marketplace add ognistie/ognistie.skills
+/plugin install ognistie-skill@ognistie-skills
+/reload-plugins
+```
+
+Confirme que o plugin aparece entre os instalados:
+
+```text
+/plugin list
+```
+
+Agora envie uma tarefa concreta:
+
+```text
+/ognistie-skill:ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
+```
+
+Por ser distribuída como plugin, a skill recebe o namespace `ognistie-skill`. Ela apenas recomenda um modelo Anthropic; não troca o modelo nem executa a tarefa.
+
+#### Atualizar
+
+```text
+/plugin marketplace update ognistie-skills
+/plugin update ognistie-skill@ognistie-skills
+/reload-plugins
+```
+
+#### Desinstalar
+
+```text
+/plugin uninstall ognistie-skill@ognistie-skills
+/plugin marketplace remove ognistie-skills
+```
+
+#### Solução de problemas
+
+- Se `/plugin` não existir, atualize o Claude Code.
+- Se o marketplace não for encontrado, confirme o acesso a `github.com/ognistie/ognistie.skills` e repita o primeiro comando.
+- Se a skill não aparecer depois da instalação, execute `/reload-plugins` ou reinicie o Claude Code.
+- Use `/ognistie-skill:ognistie-skill`; `/ognistie.skill` não é um comando válido.
+
+### Instalação manual
+
+Para manter o comando curto `/ognistie-skill`, clone o repositório e copie a distribuição Claude para sua pasta pessoal.
 
 macOS ou Linux:
 
@@ -53,7 +103,7 @@ Depois use:
 /ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
 ```
 
-Use o hífen exatamente como mostrado. `/ognistie.skill` não é um comando válido; o Claude Code deriva `/ognistie-skill` do nome da pasta `ognistie-skill`.
+Use o hífen exatamente como mostrado. `/ognistie.skill` não é um comando válido. Na instalação manual, o Claude Code deriva `/ognistie-skill` do nome da pasta.
 
 Se a pasta `~/.claude/skills` não existia quando a sessão começou, reinicie o Claude Code para habilitar a descoberta.
 

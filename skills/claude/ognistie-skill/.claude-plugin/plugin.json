@@ -1,0 +1,10 @@
+{
+  "name": "ognistie-skill",
+  "description": "Recommends the least expensive Anthropic model that can complete a supplied task reliably",
+  "author": {
+    "name": "ognistie"
+  },
+  "homepage": "https://github.com/ognistie/ognistie.skills",
+  "repository": "https://github.com/ognistie/ognistie.skills",
+  "license": "MIT"
+}

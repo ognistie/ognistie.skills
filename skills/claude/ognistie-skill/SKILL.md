@@ -1,6 +1,6 @@
 ---
 name: ognistie-skill
-description: Recommend the least expensive current Anthropic model that can complete a supplied task reliably in Claude Code. Use when the user invokes /ognistie-skill with a concrete task, asks which Claude model should handle work, or wants to avoid an oversized model. Return only the model, provider, and one brief reason, then stop without executing the task.
+description: Recommend the least expensive current Anthropic model that can complete a supplied task reliably in Claude Code. Use when invoked as /ognistie-skill or /ognistie-skill:ognistie-skill with a concrete task, when the user asks which Claude model should handle work, or when they want to avoid an oversized model. Return only the model, provider, and one brief reason, then stop without executing the task.
 ---
 
 # ognistie.Skill for Claude Code

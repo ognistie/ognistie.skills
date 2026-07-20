@@ -1,5 +1,6 @@
 {
   "platform": "Claude Code",
   "provider": "Anthropic",
-  "invocation": "/ognistie-skill"
+  "invocation": "/ognistie-skill",
+  "plugin_invocation": "/ognistie-skill:ognistie-skill"
 }

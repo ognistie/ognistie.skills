@@ -27,6 +27,7 @@ PLATFORMS = {
         "invocation": "/ognistie-skill",
     },
 }
+CLAUDE_MARKETPLACE = ROOT / ".claude-plugin" / "marketplace.json"
 
 
 def load_module(name: str, path: Path):
@@ -57,7 +58,11 @@ class DistributionStructureTests(unittest.TestCase):
             "scripts/validate_routing_output.py",
         }
         for platform, config in PLATFORMS.items():
-            expected = common | ({"agents/openai.yaml"} if platform == "codex" else set())
+            expected = common | (
+                {"agents/openai.yaml"}
+                if platform == "codex"
+                else {".claude-plugin/plugin.json"}
+            )
             actual = {
                 path.relative_to(config["root"]).as_posix()
                 for path in config["root"].rglob("*")
@@ -93,6 +98,28 @@ class DistributionStructureTests(unittest.TestCase):
         claude_skill = (PLATFORMS["claude"]["root"] / "SKILL.md").read_text()
         self.assertIn("$ARGUMENTS", claude_skill)
         self.assertNotIn("/ognistie.skill", claude_skill)
+
+    def test_claude_marketplace_points_to_self_contained_plugin(self):
+        marketplace = json.loads(CLAUDE_MARKETPLACE.read_text(encoding="utf-8"))
+        self.assertEqual(marketplace["name"], "ognistie-skills")
+        self.assertEqual(len(marketplace["plugins"]), 1)
+        plugin = marketplace["plugins"][0]
+        self.assertEqual(plugin["name"], "ognistie-skill")
+        plugin_root = ROOT / plugin["source"]
+        self.assertEqual(plugin_root.resolve(), PLATFORMS["claude"]["root"].resolve())
+        manifest = json.loads(
+            (plugin_root / ".claude-plugin" / "plugin.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(manifest["name"], plugin["name"])
+        runtime = json.loads(
+            (plugin_root / "references" / "runtime.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            runtime["plugin_invocation"],
+            f"/{plugin['name']}:ognistie-skill",
+        )
 
     def test_shared_files_remain_identical(self):
         codex = PLATFORMS["codex"]["root"]

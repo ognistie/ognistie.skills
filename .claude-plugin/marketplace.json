@@ -1,0 +1,19 @@
+{
+  "name": "ognistie-skills",
+  "owner": {
+    "name": "ognistie"
+  },
+  "plugins": [
+    {
+      "name": "ognistie-skill",
+      "source": "./skills/claude/ognistie-skill",
+      "description": "Routes a task to the least expensive Anthropic model that can complete it reliably",
+      "category": "productivity",
+      "tags": [
+        "ai",
+        "model-routing",
+        "cost-optimization"
+      ]
+    }
+  ]
+}

@@ -24,22 +24,6 @@ No Claude Code, adicione o marketplace e instale o plugin:
 /reload-plugins
 ```
 
-Para manter o comando curto `/ognistie-skill`, copie manualmente a distribuição Claude:
-
-```bash
-git clone https://github.com/ognistie/ognistie.skills.git
-mkdir -p ~/.claude/skills/ognistie-skill
-cp -R ognistie.skills/skills/claude/ognistie-skill/. ~/.claude/skills/ognistie-skill/
-```
-
-No Windows PowerShell:
-
-```powershell
-git clone https://github.com/ognistie/ognistie.skills.git
-New-Item -ItemType Directory -Force "$HOME\.claude\skills\ognistie-skill" | Out-Null
-Copy-Item -Recurse -Force ".\ognistie.skills\skills\claude\ognistie-skill\*" "$HOME\.claude\skills\ognistie-skill"
-```
-
 ## Uso
 
 Invoque a skill novamente para cada tarefa que deseja rotear.
@@ -50,16 +34,10 @@ No Codex:
 $ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
 ```
 
-No Claude Code instalado como plugin:
+No Claude Code:
 
 ```text
 /ognistie-skill:ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
-```
-
-No Claude Code instalado manualmente:
-
-```text
-/ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
 ```
 
 `/ognistie.skill` não é um comando válido. Use hífen e invoque a skill em cada nova tarefa.

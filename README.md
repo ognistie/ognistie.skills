@@ -6,7 +6,7 @@
 
 A skill não troca o modelo automaticamente. Ela ensina um fluxo simples:
 
-1. Envie a tarefa para a skill.
+1. Invoque a skill e escreva a tarefa na mesma mensagem.
 2. Leia o modelo e o provedor recomendados.
 3. Selecione esse modelo e envie a mesma tarefa para execução.
 
@@ -18,6 +18,8 @@ Motivo: Alteração visual moderada exige boa implementação com custo menor qu
 ```
 
 Nenhum modelo garante perfeição. Tarefas críticas continuam exigindo testes, validações determinísticas e revisão humana.
+
+> A ativação vale para a mensagem atual. Não envie `$ognistie-skill` sozinho e a tarefa depois; use sempre `$ognistie-skill <sua tarefa>` em uma única mensagem.
 
 ## Uso rápido
 
@@ -49,7 +51,7 @@ Copy-Item -Recurse -Force ".\skills\ognistie-skill\*" "$HOME\.claude\skills\ogni
 Use:
 
 ```text
-/ognistie-skill Descreva aqui a tarefa que deseja analisar.
+/ognistie-skill Descreva aqui a tarefa que deseja analisar, na mesma mensagem.
 ```
 
 ## Guia para OpenAI Codex
@@ -71,7 +73,7 @@ Copy-Item -Recurse -Force ".\skills\ognistie-skill\*" "$HOME\.codex\skills\ognis
 Use:
 
 ```text
-$ognistie-skill Descreva aqui a tarefa que deseja analisar.
+$ognistie-skill Descreva aqui a tarefa que deseja analisar, na mesma mensagem.
 ```
 
 ## Contribuindo

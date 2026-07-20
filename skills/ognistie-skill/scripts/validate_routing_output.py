@@ -6,11 +6,12 @@ from __future__ import annotations
 import json
 import re
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = SKILL_ROOT / "references" / "model-catalog.json"
-NO_TASK = "Envie a tarefa que deseja analisar."
+NO_TASK = "Envie novamente na mesma mensagem: $ognistie-skill <sua tarefa>."
 MODEL_LINE = re.compile(
     r"^Modelo indicado: (?P<model>[^\r\n]+?) — Provedor: "
     r"(?P<provider>OpenAI|Anthropic)\.$"
@@ -28,9 +29,10 @@ FORBIDDEN = (
 )
 
 
-def catalog_pairs() -> set[tuple[str, str]]:
+@lru_cache(maxsize=1)
+def catalog_pairs() -> frozenset[tuple[str, str]]:
     data = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
-    return {(item["name"], item["provider"]) for item in data["models"]}
+    return frozenset((item["name"], item["provider"]) for item in data["models"])
 
 
 def validate(text: str) -> list[str]:
@@ -71,7 +73,7 @@ def main() -> int:
     if len(sys.argv) != 2:
         print("usage: validate_routing_output.py <output-file>", file=sys.stderr)
         return 2
-    errors = validate(Path(sys.argv[1]).read_text(encoding="utf-8"))
+    errors = validate(Path(sys.argv[1]).read_text(encoding="utf-8-sig"))
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)

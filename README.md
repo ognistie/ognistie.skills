@@ -1,103 +1,98 @@
 # ognistie.skills
 
-## O que é
+Roteador pré-tarefa para escolher o modelo de menor custo que atende ao risco e à complexidade do trabalho. O repositório oferece distribuições independentes para Codex e Claude Code; nenhuma delas executa a tarefa ou troca o modelo automaticamente.
 
-`ognistie-skill` é um roteador pré-tarefa para Claude e Codex. Ele analisa complexidade, risco, esforço e custo, recomenda o modelo OpenAI ou Anthropic mais econômico que atende ao nível de qualidade necessário e para sem executar a tarefa.
+## Escolha seu ambiente
 
-A skill não troca o modelo automaticamente. Ela ensina um fluxo simples:
+| Ambiente | Skill | Invocação | Modelos recomendados |
+| --- | --- | --- | --- |
+| OpenAI Codex | `skills/codex/ognistie-skill` | `$ognistie-skill <tarefa>` | OpenAI |
+| Claude Code | `skills/claude/ognistie-skill` | `/ognistie-skill <tarefa>` | Anthropic |
 
-1. Invoque a skill e escreva a tarefa na mesma mensagem.
-2. Leia o modelo e o provedor recomendados.
-3. Selecione esse modelo e envie a mesma tarefa para execução.
+Cada distribuição é autônoma e contém somente `SKILL.md`, licença, referências, validador e metadados exigidos pelo respectivo ambiente.
 
-Resposta esperada:
+## Codex
+
+Instale diretamente do GitHub:
 
 ```text
-Modelo indicado: Claude Sonnet 5 — Provedor: Anthropic.
-Motivo: Alteração visual moderada exige boa implementação com custo menor que modelos avançados.
+$skill-installer Instale https://github.com/ognistie/ognistie.skills/tree/main/skills/codex/ognistie-skill
 ```
 
-Nenhum modelo garante perfeição. Tarefas críticas continuam exigindo testes, validações determinísticas e revisão humana.
+Se a skill não aparecer após a instalação, reinicie o Codex. Depois use:
 
-> A ativação vale para a mensagem atual. Não envie `$ognistie-skill` sozinho e a tarefa depois; use sempre `$ognistie-skill <sua tarefa>` em uma única mensagem.
+```text
+$ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
+```
 
-## Uso rápido
+O nome curto no `$skill-installer` dependerá da aceitação da distribuição Codex em `openai/skills/skills/.curated/ognistie-skill`.
 
-Clone o repositório:
+## Claude Code
+
+Clone o repositório e copie a distribuição Claude para sua pasta pessoal.
+
+macOS ou Linux:
 
 ```bash
 git clone https://github.com/ognistie/ognistie.skills.git
-cd ognistie.skills
-```
-
-Instale a pasta `skills/ognistie-skill` no Claude ou Codex e abra uma nova sessão.
-
-## Guia para Claude Code
-
-macOS ou Linux:
-
-```bash
 mkdir -p ~/.claude/skills/ognistie-skill
-cp -R skills/ognistie-skill/. ~/.claude/skills/ognistie-skill/
+cp -R ognistie.skills/skills/claude/ognistie-skill/. ~/.claude/skills/ognistie-skill/
 ```
 
 Windows PowerShell:
 
 ```powershell
+git clone https://github.com/ognistie/ognistie.skills.git
 New-Item -ItemType Directory -Force "$HOME\.claude\skills\ognistie-skill" | Out-Null
-Copy-Item -Recurse -Force ".\skills\ognistie-skill\*" "$HOME\.claude\skills\ognistie-skill"
+Copy-Item -Recurse -Force ".\ognistie.skills\skills\claude\ognistie-skill\*" "$HOME\.claude\skills\ognistie-skill"
 ```
 
-Use:
+Depois use:
 
 ```text
-/ognistie-skill Descreva aqui a tarefa que deseja analisar, na mesma mensagem.
+/ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
 ```
 
-## Guia para OpenAI Codex
+Use o hífen exatamente como mostrado. `/ognistie.skill` não é um comando válido; o Claude Code deriva `/ognistie-skill` do nome da pasta `ognistie-skill`.
 
-Instalação direta pelo catálogo de skills do Codex:
+Se a pasta `~/.claude/skills` não existia quando a sessão começou, reinicie o Claude Code para habilitar a descoberta.
+
+## Saída
+
+As duas distribuições retornam somente:
 
 ```text
-$skill-installer Instale https://github.com/ognistie/ognistie.skills/tree/main/skills/ognistie-skill
+Modelo indicado: <modelo> — Provedor: <provedor>.
+Motivo: <justificativa curta de qualidade, risco e custo>.
 ```
 
-Se a skill não aparecer imediatamente após a instalação, reinicie o Codex. Até que ela seja aceita no catálogo oficial `openai/skills`, a instalação deve informar a URL completa; o nome curto `$skill-installer ognistie-skill` fica disponível somente após inclusão em `skills/.curated/ognistie-skill`.
+Tarefas críticas continuam exigindo testes, verificações determinísticas e aprovação humana.
 
-Instalação manual:
-
-macOS ou Linux:
-
-```bash
-mkdir -p ~/.codex/skills/ognistie-skill
-cp -R skills/ognistie-skill/. ~/.codex/skills/ognistie-skill/
-```
-
-Windows PowerShell:
-
-```powershell
-New-Item -ItemType Directory -Force "$HOME\.codex\skills\ognistie-skill" | Out-Null
-Copy-Item -Recurse -Force ".\skills\ognistie-skill\*" "$HOME\.codex\skills\ognistie-skill"
-```
-
-Use:
+## Desenvolvimento
 
 ```text
-$ognistie-skill Descreva aqui a tarefa que deseja analisar, na mesma mensagem.
+evals/      Casos compartilhados de economy, balanced, advanced e segurança
+scripts/    Ferramentas de avaliação do repositório
+skills/     Distribuições autônomas para Codex e Claude Code
+tests/      Validação estrutural e comportamental das duas distribuições
 ```
 
-## Contribuindo
-
-Faça um fork, crie uma branch objetiva e abra um pull request. Antes de enviar, execute:
+Antes de contribuir, execute:
 
 ```bash
 python -B -m unittest discover -s tests -v
+python -m ruff check scripts tests skills
 ```
 
-Mudanças no roteamento devem atualizar `evals/evals.json` e usar documentação oficial para modelos, preços e capacidades.
+Para avaliar respostas capturadas:
 
-Para propor a skill ao catálogo oficial, faça um fork de `openai/skills`, adicione a pasta em `skills/.curated/ognistie-skill` e abra um pull request para avaliação dos mantenedores.
+```bash
+python scripts/evaluate_routing_outputs.py skills/codex/ognistie-skill outputs.json
+python scripts/evaluate_routing_outputs.py skills/claude/ognistie-skill outputs.json
+```
 
-## Inspiração
+Mudanças de política devem atualizar `evals/evals.json`. Mudanças de modelos, preços ou disponibilidade devem usar as fontes oficiais registradas em cada catálogo.
 
-Este repositório segue os padrões do [padrão Agent Skills](https://agentskills.io/) , [do repositório de habilidades da Anthropic](https://github.com/anthropics/skills) , [do repositório de habilidades da OpenAI](https://github.com/openai/skills).
+## Licença
+
+[MIT](LICENSE)

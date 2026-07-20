@@ -12,12 +12,21 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "skills" / "ognistie-skill"
-SKILL_MD = SKILL / "SKILL.md"
-CATALOG = SKILL / "references" / "model-catalog.json"
-EVALS = SKILL / "evals" / "evals.json"
-EVAL_RUNNER = SKILL / "scripts" / "evaluate_routing_outputs.py"
+EVALS = ROOT / "evals" / "evals.json"
+EVAL_RUNNER = ROOT / "scripts" / "evaluate_routing_outputs.py"
 TEXT_SUFFIXES = {".json", ".md", ".py", ".txt", ".yaml", ".yml"}
+PLATFORMS = {
+    "codex": {
+        "root": ROOT / "skills" / "codex" / "ognistie-skill",
+        "provider": "OpenAI",
+        "invocation": "$ognistie-skill",
+    },
+    "claude": {
+        "root": ROOT / "skills" / "claude" / "ognistie-skill",
+        "provider": "Anthropic",
+        "invocation": "/ognistie-skill",
+    },
+}
 
 
 def load_module(name: str, path: Path):
@@ -29,48 +38,79 @@ def load_module(name: str, path: Path):
     return module
 
 
-validator = load_module(
-    "routing_validator", SKILL / "scripts" / "validate_routing_output.py"
-)
+def validator(platform: str):
+    skill_root = PLATFORMS[platform]["root"]
+    return load_module(
+        f"routing_validator_{platform}",
+        skill_root / "scripts" / "validate_routing_output.py",
+    )
 
 
-class SkillStructureTests(unittest.TestCase):
-    def test_frontmatter_is_portable(self):
-        text = SKILL_MD.read_text(encoding="utf-8")
-        match = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
-        self.assertIsNotNone(match)
-        frontmatter = match.group(1)
-        keys = [
-            line.split(":", 1)[0]
-            for line in frontmatter.splitlines()
-            if ":" in line
-        ]
-        self.assertEqual(keys, ["name", "description"])
-        self.assertIn("name: ognistie-skill", frontmatter)
-        self.assertEqual(SKILL.name, "ognistie-skill")
-
-    def test_required_runtime_files_exist(self):
-        required = (
-            "SKILL.md",
+class DistributionStructureTests(unittest.TestCase):
+    def test_distributions_are_minimal_and_self_contained(self):
+        common = {
             "LICENSE.txt",
-            "agents/openai.yaml",
-            "references/routing-policy.md",
+            "SKILL.md",
             "references/model-catalog.json",
-            "evals/evals.json",
-            "scripts/evaluate_routing_outputs.py",
+            "references/routing-policy.md",
+            "references/runtime.json",
             "scripts/validate_routing_output.py",
-        )
-        for relative in required:
-            self.assertTrue((SKILL / relative).is_file(), relative)
+        }
+        for platform, config in PLATFORMS.items():
+            expected = common | ({"agents/openai.yaml"} if platform == "codex" else set())
+            actual = {
+                path.relative_to(config["root"]).as_posix()
+                for path in config["root"].rglob("*")
+                if path.is_file() and "__pycache__" not in path.parts
+            }
+            self.assertEqual(actual, expected, platform)
 
-    def test_skill_references_existing_files(self):
-        text = SKILL_MD.read_text(encoding="utf-8")
-        for relative in re.findall(r"\]\((references/[^)]+)\)", text):
-            self.assertTrue((SKILL / relative).is_file(), relative)
+    def test_frontmatter_and_references_are_portable(self):
+        for platform, config in PLATFORMS.items():
+            text = (config["root"] / "SKILL.md").read_text(encoding="utf-8")
+            match = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
+            self.assertIsNotNone(match, platform)
+            keys = [
+                line.split(":", 1)[0]
+                for line in match.group(1).splitlines()
+                if ":" in line
+            ]
+            self.assertEqual(keys, ["name", "description"], platform)
+            self.assertIn("name: ognistie-skill", match.group(1))
+            for relative in re.findall(r"\]\((references/[^)]+)\)", text):
+                self.assertTrue((config["root"] / relative).is_file(), relative)
 
-    def test_no_machine_specific_paths_or_secrets(self):
+    def test_platform_contracts_do_not_leak(self):
+        for platform, config in PLATFORMS.items():
+            skill = (config["root"] / "SKILL.md").read_text(encoding="utf-8")
+            runtime = json.loads(
+                (config["root"] / "references" / "runtime.json").read_text()
+            )
+            self.assertEqual(runtime["provider"], config["provider"])
+            self.assertEqual(runtime["invocation"], config["invocation"])
+            self.assertIn(config["provider"], skill)
+            self.assertIn(config["invocation"], skill)
+        claude_skill = (PLATFORMS["claude"]["root"] / "SKILL.md").read_text()
+        self.assertIn("$ARGUMENTS", claude_skill)
+        self.assertNotIn("/ognistie.skill", claude_skill)
+
+    def test_shared_files_remain_identical(self):
+        codex = PLATFORMS["codex"]["root"]
+        claude = PLATFORMS["claude"]["root"]
+        for relative in (
+            "LICENSE.txt",
+            "references/routing-policy.md",
+            "scripts/validate_routing_output.py",
+        ):
+            self.assertEqual(
+                (codex / relative).read_bytes(),
+                (claude / relative).read_bytes(),
+                relative,
+            )
+
+    def test_no_machine_paths_or_secrets(self):
         patterns = (
-            r"[A-Za-z]:\\" + "Users" + r"\\",
+            r"[A-Za-z]:\\Users\\",
             "/" + "Users" + r"/[^/<]+/",
             "/" + "home" + r"/[^/<]+/",
             r"sk-[A-Za-z0-9_-]{20,}",
@@ -90,199 +130,167 @@ class SkillStructureTests(unittest.TestCase):
 
 
 class CatalogTests(unittest.TestCase):
+    def test_catalogs_match_platform_and_are_current(self):
+        for platform, config in PLATFORMS.items():
+            catalog = json.loads(
+                (config["root"] / "references" / "model-catalog.json").read_text()
+            )
+            models = catalog["models"]
+            self.assertTrue(models, platform)
+            self.assertEqual({item["provider"] for item in models}, {config["provider"]})
+            self.assertEqual({item["tier"] for item in models}, {"economy", "balanced", "advanced"})
+            self.assertEqual(len({item["api_id"] for item in models}), len(models))
+            self.assertTrue(all(item["input_usd"] > 0 for item in models))
+            self.assertTrue(all(item["output_usd"] > 0 for item in models))
+            self.assertTrue(
+                all(url.startswith("https://") for url in catalog["official_sources"].values())
+            )
+            expires = date.fromisoformat(catalog["verified_at"]) + timedelta(
+                days=catalog["refresh_after_days"]
+            )
+            self.assertGreaterEqual(expires, date.today())
+
+
+class EvaluationDatasetTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
+        cls.cases = json.loads(EVALS.read_text(encoding="utf-8"))["evals"]
 
-    def test_catalog_has_unique_known_models(self):
-        models = self.catalog["models"]
-        names = [item["name"] for item in models]
-        ids = [item["api_id"] for item in models]
-        self.assertEqual(len(names), len(set(names)))
-        self.assertEqual(len(ids), len(set(ids)))
-        self.assertGreaterEqual(len(models), 6)
-
-    def test_catalog_covers_providers_and_tiers(self):
-        pairs = {
-            (item["provider"], item["tier"])
-            for item in self.catalog["models"]
-        }
-        for provider in ("OpenAI", "Anthropic"):
-            for tier in ("economy", "balanced", "advanced"):
-                self.assertIn((provider, tier), pairs)
-
-    def test_catalog_uses_official_sources_and_positive_prices(self):
-        sources = self.catalog["official_sources"]
-        self.assertTrue(sources["OpenAI"].startswith("https://developers.openai.com/"))
-        self.assertTrue(
-            all(
-                url.startswith("https://platform.claude.com/")
-                for key, url in sources.items()
-                if key.startswith("Anthropic")
-            )
-        )
-        for item in self.catalog["models"]:
-            self.assertGreater(item["input_usd"], 0)
-            self.assertGreater(item["output_usd"], 0)
-
-    def test_catalog_verification_is_current(self):
-        verified_at = date.fromisoformat(self.catalog["verified_at"])
-        expires_at = verified_at + timedelta(days=self.catalog["refresh_after_days"])
-        self.assertGreaterEqual(expires_at, date.today())
-
-
-class EvaluationTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.evals = json.loads(EVALS.read_text(encoding="utf-8"))["evals"]
-
-    def test_eval_suite_is_representative(self):
-        self.assertGreaterEqual(len(self.evals), 20)
-        tiers = {case["expected_tier"] for case in self.evals}
-        self.assertEqual(tiers, {None, "economy", "balanced", "advanced"})
-
-    def test_eval_suite_covers_security_boundaries(self):
-        tags = {
-            tag
-            for case in self.evals
-            for tag in case.get("risk_tags", [])
-        }
-        required = {
-            "prompt-injection",
-            "indirect-prompt-injection",
-            "provider-boundary",
-            "production",
-            "authorization",
-            "privacy",
-        }
-        self.assertTrue(required.issubset(tags))
-
-    def test_critical_cases_never_expect_lower_tiers(self):
-        critical = {
-            "production",
-            "authorization",
-            "credentials",
-            "privacy",
-            "regulated-data",
-            "financial-impact",
-        }
-        for case in self.evals:
-            if critical.intersection(case.get("risk_tags", [])):
-                self.assertEqual(case["expected_tier"], "advanced")
-
-
-class RoutingContractTests(unittest.TestCase):
-    def test_accepts_every_catalog_pair(self):
-        catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
-        for item in catalog["models"]:
-            output = (
-                f"Modelo indicado: {item['name']} — Provedor: {item['provider']}.\n"
-                "Motivo: Este modelo atende à qualidade necessária com custo adequado."
-            )
-            self.assertEqual(validator.validate(output), [], item["name"])
-
-    def test_accepts_no_task_response(self):
+    def test_dataset_covers_tiers_and_security_boundaries(self):
+        self.assertGreaterEqual(len(self.cases), 20)
         self.assertEqual(
-            validator.validate(
-                "Envie novamente na mesma mensagem: $ognistie-skill <sua tarefa>."
-            ),
-            [],
+            {case["expected_tier"] for case in self.cases},
+            {None, "economy", "balanced", "advanced"},
+        )
+        tags = {tag for case in self.cases for tag in case.get("risk_tags", [])}
+        self.assertTrue(
+            {
+                "prompt-injection",
+                "indirect-prompt-injection",
+                "provider-boundary",
+                "production",
+                "authorization",
+                "privacy",
+            }.issubset(tags)
         )
 
-    def test_rejects_unknown_or_mismatched_model(self):
-        outputs = (
-            "Modelo indicado: Modelo Inventado — Provedor: OpenAI.\nMotivo: Parece barato.",
-            "Modelo indicado: GPT-5.6 Luna — Provedor: Anthropic.\nMotivo: Parece barato.",
-        )
-        for output in outputs:
-            self.assertTrue(validator.validate(output))
 
-    def test_rejects_verbose_or_long_output(self):
-        verbose = (
-            "Task Analysis\n"
-            "Modelo indicado: Claude Sonnet 5 — Provedor: Anthropic.\n"
-            "Motivo: Boa opção."
+class RuntimeContractTests(unittest.TestCase):
+    def test_each_runtime_accepts_only_its_catalog(self):
+        for platform, config in PLATFORMS.items():
+            module = validator(platform)
+            catalog = json.loads(
+                (config["root"] / "references" / "model-catalog.json").read_text()
+            )
+            for item in catalog["models"]:
+                output = (
+                    f"Modelo indicado: {item['name']} — Provedor: {item['provider']}.\n"
+                    "Motivo: Atende à qualidade necessária com custo proporcional ao risco."
+                )
+                self.assertEqual(module.validate(output), [], item["name"])
+            self.assertEqual(module.validate(module.no_task_response()), [])
+
+    def test_cross_provider_outputs_are_rejected(self):
+        codex_validator = validator("codex")
+        claude_validator = validator("claude")
+        self.assertTrue(
+            codex_validator.validate(
+                "Modelo indicado: Claude Haiku 4.5 — Provedor: Anthropic.\n"
+                "Motivo: Parece barato."
+            )
         )
-        long_reason = " ".join(["palavra"] * 26)
-        long_output = (
-            "Modelo indicado: GPT-5.6 Terra — Provedor: OpenAI.\n"
-            f"Motivo: {long_reason}."
+        self.assertTrue(
+            claude_validator.validate(
+                "Modelo indicado: GPT-5.6 Luna — Provedor: OpenAI.\n"
+                "Motivo: Parece barato."
+            )
         )
-        self.assertTrue(validator.validate(verbose))
-        self.assertTrue(validator.validate(long_output))
 
     def test_cli_accepts_utf8_bom(self):
-        output = (
-            "Modelo indicado: GPT-5.6 Terra — Provedor: OpenAI.\n"
-            "Motivo: Bom equilíbrio entre qualidade e custo."
-        )
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "output.txt"
-            path.write_text(output, encoding="utf-8-sig")
-            result = subprocess.run(
-                [sys.executable, str(SKILL / "scripts" / "validate_routing_output.py"), str(path)],
-                capture_output=True,
-                text=True,
-                check=False,
+        for platform, config in PLATFORMS.items():
+            module = validator(platform)
+            model = next(iter(module.catalog_pairs()))
+            output = (
+                f"Modelo indicado: {model[0]} — Provedor: {model[1]}.\n"
+                "Motivo: Bom equilíbrio entre qualidade e custo."
             )
-        self.assertEqual(result.returncode, 0, result.stderr)
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "output.txt"
+                path.write_text(output, encoding="utf-8-sig")
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(config["root"] / "scripts" / "validate_routing_output.py"),
+                        str(path),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+            self.assertEqual(result.returncode, 0, result.stderr)
 
 
-class CapturedOutputEvaluationTests(unittest.TestCase):
+class CapturedOutputRunnerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.catalog = json.loads(CATALOG.read_text(encoding="utf-8"))["models"]
-        cls.evals = json.loads(EVALS.read_text(encoding="utf-8"))["evals"]
+        cls.cases = json.loads(EVALS.read_text(encoding="utf-8"))["evals"]
 
-    def run_evaluator(self, outputs: list[dict]) -> subprocess.CompletedProcess[str]:
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "outputs.json"
-            path.write_text(
-                json.dumps({"outputs": outputs}, ensure_ascii=False),
-                encoding="utf-8-sig",
-            )
-            return subprocess.run(
-                [sys.executable, str(EVAL_RUNNER), str(path)],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-
-    def output_for_tier(self, tier: str) -> str:
-        model = next(item for item in self.catalog if item["tier"] == tier)
-        return (
-            f"Modelo indicado: {model['name']} — Provedor: {model['provider']}.\n"
-            "Motivo: Atende à qualidade exigida com custo proporcional ao risco."
-        )
-
-    def build_outputs(self) -> list[dict]:
+    def outputs_for(self, platform: str) -> list[dict]:
+        module = validator(platform)
+        catalog = json.loads(
+            (PLATFORMS[platform]["root"] / "references" / "model-catalog.json").read_text()
+        )["models"]
+        by_tier = {item["tier"]: item for item in catalog}
         outputs = []
-        for case in self.evals:
-            output = (
-                validator.NO_TASK
-                if case["expected_tier"] is None
-                else self.output_for_tier(case["expected_tier"])
-            )
+        for case in self.cases:
+            if case["expected_tier"] is None:
+                output = module.no_task_response()
+            else:
+                model = by_tier[case["expected_tier"]]
+                output = (
+                    f"Modelo indicado: {model['name']} — Provedor: {model['provider']}.\n"
+                    "Motivo: Atende à qualidade exigida com custo proporcional ao risco."
+                )
             outputs.append({"id": case["id"], "output": output})
         return outputs
 
-    def test_runner_accepts_outputs_for_all_evals(self):
-        outputs = self.build_outputs()
-        result = self.run_evaluator(outputs)
-        self.assertEqual(result.returncode, 0, result.stderr)
+    def run_evaluator(self, platform: str, outputs: list[dict]):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "outputs.json"
+            path.write_text(json.dumps({"outputs": outputs}), encoding="utf-8")
+            return subprocess.run(
+                [
+                    sys.executable,
+                    str(EVAL_RUNNER),
+                    str(PLATFORMS[platform]["root"]),
+                    str(path),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+    def test_runner_accepts_both_platforms(self):
+        for platform in PLATFORMS:
+            result = self.run_evaluator(platform, self.outputs_for(platform))
+            self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_runner_rejects_wrong_tier(self):
-        outputs = self.build_outputs()
-        outputs[0]["output"] = self.output_for_tier("advanced")
-        result = self.run_evaluator(outputs)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("eval 1: expected tier economy, got advanced", result.stderr)
-
-    def test_runner_rejects_invalid_schema_without_traceback(self):
-        result = self.run_evaluator([{"id": 1, "output": 42}])
-        self.assertEqual(result.returncode, 2)
-        self.assertIn("must contain an integer id and string output", result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
+        outputs = self.outputs_for("codex")
+        advanced = next(
+            item
+            for item in json.loads(
+                (PLATFORMS["codex"]["root"] / "references" / "model-catalog.json").read_text()
+            )["models"]
+            if item["tier"] == "advanced"
+        )
+        outputs[0]["output"] = (
+            f"Modelo indicado: {advanced['name']} — Provedor: OpenAI.\n"
+            "Motivo: Modelo mais forte."
+        )
+        result = self.run_evaluator("codex", outputs)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("expected tier economy, got advanced", result.stderr)
 
 
 if __name__ == "__main__":

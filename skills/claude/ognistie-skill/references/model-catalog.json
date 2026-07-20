@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-07-20",
+  "refresh_after_days": 30,
+  "currency": "USD",
+  "unit": "per_million_tokens",
+  "official_sources": {
+    "models": "https://platform.claude.com/docs/en/about-claude/models/overview",
+    "pricing": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "claude_code": "https://code.claude.com/docs/en/model-config"
+  },
+  "models": [
+    {
+      "provider": "Anthropic",
+      "name": "Claude Haiku 4.5",
+      "api_id": "claude-haiku-4-5-20251001",
+      "tier": "economy",
+      "input_usd": 1.0,
+      "output_usd": 5.0,
+      "task_fit": "Fast, low-cost, low-risk work"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Sonnet 5",
+      "api_id": "claude-sonnet-5",
+      "tier": "balanced",
+      "input_usd": 2.0,
+      "output_usd": 10.0,
+      "price_valid_through": "2026-08-31",
+      "standard_input_usd": 3.0,
+      "standard_output_usd": 15.0,
+      "task_fit": "Bounded coding, UI, and tool use with balanced quality and cost"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Opus 4.8",
+      "api_id": "claude-opus-4-8",
+      "tier": "advanced",
+      "input_usd": 5.0,
+      "output_usd": 25.0,
+      "task_fit": "Complex coding, enterprise work, and critical review"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Fable 5",
+      "api_id": "claude-fable-5",
+      "tier": "advanced",
+      "input_usd": 10.0,
+      "output_usd": 50.0,
+      "task_fit": "Exceptional long-running and highest-capability workloads"
+    }
+  ]
+}

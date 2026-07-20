@@ -1,0 +1,5 @@
+{
+  "platform": "Codex",
+  "provider": "OpenAI",
+  "invocation": "$ognistie-skill"
+}

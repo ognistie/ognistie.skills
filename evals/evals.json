@@ -143,8 +143,8 @@
       "id": 20,
       "prompt": "",
       "expected_tier": null,
-      "expected_output": "Envie novamente na mesma mensagem: $ognistie-skill <sua tarefa>.",
-      "assertions": ["Explica a ativação na mesma mensagem", "Não recomenda modelo"]
+      "expected_output": "Resposta sem tarefa específica da plataforma.",
+      "assertions": ["Usa a sintaxe correta da plataforma", "Não recomenda modelo"]
     }
   ]
 }

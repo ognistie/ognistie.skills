@@ -1,0 +1,4 @@
+interface:
+  display_name: "ognistie.Skill for Codex"
+  short_description: "Escolhe o modelo OpenAI certo antes da tarefa"
+  default_prompt: "Use $ognistie-skill com a tarefa na mesma mensagem para recomendar o modelo OpenAI de melhor custo-benefício sem executar o trabalho."

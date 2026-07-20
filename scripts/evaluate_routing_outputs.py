@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-"""Evaluate captured ognistie.Skill outputs against the bundled eval suite."""
+"""Evaluate captured ognistie.Skill outputs for a selected distribution."""
 
 from __future__ import annotations
 
 import json
+import importlib.util
 import sys
 from pathlib import Path
 
-from validate_routing_output import MODEL_LINE, NO_TASK, validate
-
-SKILL_ROOT = Path(__file__).resolve().parents[1]
-CATALOG_PATH = SKILL_ROOT / "references" / "model-catalog.json"
-EVALS_PATH = SKILL_ROOT / "evals" / "evals.json"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+EVALS_PATH = REPO_ROOT / "evals" / "evals.json"
 
 
 def load_json(path: Path) -> dict:
@@ -35,8 +33,19 @@ def parse_outputs(payload: dict) -> list[dict]:
     return supplied
 
 
-def evaluate(outputs_path: Path) -> list[str]:
-    catalog = load_json(CATALOG_PATH)
+def load_validator(skill_root: Path):
+    path = skill_root / "scripts" / "validate_routing_output.py"
+    spec = importlib.util.spec_from_file_location("routing_validator", path)
+    if spec is None or spec.loader is None:
+        raise ValueError(f"cannot load validator from {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def evaluate(skill_root: Path, outputs_path: Path) -> list[str]:
+    validator = load_validator(skill_root)
+    catalog = load_json(skill_root / "references" / "model-catalog.json")
     tiers = {
         (item["name"], item["provider"]): item["tier"]
         for item in catalog["models"]
@@ -55,19 +64,19 @@ def evaluate(outputs_path: Path) -> list[str]:
             continue
 
         output = outputs[case_id]
-        contract_errors = validate(output)
+        contract_errors = validator.validate(output)
         errors.extend(f"eval {case_id}: {error}" for error in contract_errors)
         if contract_errors:
             continue
 
         expected_tier = case["expected_tier"]
         if expected_tier is None:
-            if output.strip() != NO_TASK:
+            if output.strip() != validator.no_task_response():
                 errors.append(f"eval {case_id}: expected the no-task response")
             continue
 
         first_line = output.strip().splitlines()[0]
-        match = MODEL_LINE.fullmatch(first_line)
+        match = validator.MODEL_LINE.fullmatch(first_line)
         if match is None:
             continue
         actual_tier = tiers[(match["model"], match["provider"])]
@@ -83,11 +92,14 @@ def evaluate(outputs_path: Path) -> list[str]:
 
 
 def main() -> int:
-    if len(sys.argv) != 2:
-        print("usage: evaluate_routing_outputs.py <outputs-json>", file=sys.stderr)
+    if len(sys.argv) != 3:
+        print(
+            "usage: evaluate_routing_outputs.py <skill-dir> <outputs-json>",
+            file=sys.stderr,
+        )
         return 2
     try:
-        errors = evaluate(Path(sys.argv[1]))
+        errors = evaluate(Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve())
     except (OSError, UnicodeError, ValueError, TypeError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 2

@@ -15,6 +15,7 @@ sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
 EVALS = ROOT / "evals" / "evals.json"
 EVAL_RUNNER = ROOT / "scripts" / "evaluate_routing_outputs.py"
+PACKAGE_BUILDER = ROOT / "scripts" / "build_claude_desktop_package.py"
 TEXT_SUFFIXES = {".json", ".md", ".py", ".txt", ".yaml", ".yml"}
 PLATFORMS = {
     "codex": {
@@ -143,6 +144,11 @@ class DistributionStructureTests(unittest.TestCase):
             "ognistie-skill/references/runtime.json",
             "ognistie-skill/scripts/validate_routing_output.py",
         }
+        builder = load_module("claude_desktop_package_builder", PACKAGE_BUILDER)
+        with tempfile.TemporaryDirectory() as directory:
+            rebuilt = builder.build_package(Path(directory) / "rebuilt.zip")
+            self.assertEqual(rebuilt.read_bytes(), CLAUDE_DESKTOP_ZIP.read_bytes())
+
         with zipfile.ZipFile(CLAUDE_DESKTOP_ZIP) as archive:
             names = set(archive.namelist())
             self.assertEqual(names, expected)

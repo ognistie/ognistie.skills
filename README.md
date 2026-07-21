@@ -58,7 +58,7 @@ Claude Desktop:
 
 Codex Desktop:
 ```text
-$ognistie-skill: Revise este fluxo OAuth procurando falhas de autorização.
+$ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
 ```
 ### <img src="https://raw.githubusercontent.com/shanraisshan/codex-cli-best-practice/main/!/codex-jumping.svg" width="42" alt="Mascote animado do Codex CLI"> <img src="https://raw.githubusercontent.com/shanraisshan/claude-code-best-practice/main/!/claude-jumping.svg" width="42" alt="Mascote animado do Claude Code">
 

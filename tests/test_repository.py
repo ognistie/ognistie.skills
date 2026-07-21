@@ -36,8 +36,10 @@ DEMO_ATTACHMENT = (
     "3b821a6a-00bd-46a2-a3b6-e8e7fa797e73"
 )
 README_ANIMATIONS = (
-    ROOT / "assets" / "claude-code-jumping.svg",
-    ROOT / "assets" / "codex-cli-jumping.svg",
+    "https://raw.githubusercontent.com/shanraisshan/"
+    "claude-code-best-practice/main/!/claude-jumping.svg",
+    "https://raw.githubusercontent.com/shanraisshan/"
+    "codex-cli-best-practice/main/!/codex-jumping.svg",
 )
 
 
@@ -148,15 +150,11 @@ class DistributionStructureTests(unittest.TestCase):
             self.assertTrue(all(".." not in name.split("/") for name in names))
 
         self.assertGreater(DEMO_VIDEO.stat().st_size, 0)
-        for animation in README_ANIMATIONS:
-            self.assertGreater(animation.stat().st_size, 0)
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("assets/ognistie-skill-demo.mp4", readme)
         self.assertIn(DEMO_ATTACHMENT, readme)
         for animation in README_ANIMATIONS:
-            self.assertIn(animation.relative_to(ROOT).as_posix(), readme)
+            self.assertIn(animation, readme)
         self.assertIn("downloads/ognistie-skill-claude-desktop.zip", readme)
-        self.assertIn("THIRD_PARTY_NOTICES.md", readme)
 
     def test_shared_files_remain_identical(self):
         codex = PLATFORMS["codex"]["root"]

@@ -9,7 +9,7 @@ https://github.com/user-attachments/assets/3b821a6a-00bd-46a2-a3b6-e8e7fa797e73
 
 ## Instalação
 
-### <img src="assets/codex-cli-jumping.svg" width="42" alt="Mascote animado do Codex CLI"> OpenAI Codex
+### <img src="https://raw.githubusercontent.com/shanraisshan/codex-cli-best-practice/main/!/codex-jumping.svg" width="42" alt="Mascote animado do Codex CLI"> OpenAI Codex
 
 No Codex, instale a distribuição OpenAI pelo GitHub:
 
@@ -17,7 +17,7 @@ No Codex, instale a distribuição OpenAI pelo GitHub:
 $skill-installer Instale https://github.com/ognistie/ognistie.skills/tree/main/skills/codex/ognistie-skill
 ```
 
-### <img src="assets/claude-code-jumping.svg" width="42" alt="Mascote animado do Claude Code"> Claude Code
+### <img src="https://raw.githubusercontent.com/shanraisshan/claude-code-best-practice/main/!/claude-jumping.svg" width="42" alt="Mascote animado do Claude Code"> Claude Code
 
 No Claude Code, adicione o marketplace e instale o plugin:
 
@@ -27,7 +27,7 @@ No Claude Code, adicione o marketplace e instale o plugin:
 /reload-plugins
 ```
 
-### <img src="assets/claude-code-jumping.svg" width="42" alt="Mascote animado do Claude Code"> Claude Desktop
+### <img src="https://raw.githubusercontent.com/shanraisshan/claude-code-best-practice/main/!/claude-jumping.svg" width="42" alt="Mascote animado do Claude Code"> Claude Desktop
 
 1. Baixe o pacote **[ognistie-skill-claude-desktop.zip](downloads/ognistie-skill-claude-desktop.zip)**.
 2. No Claude Desktop, abra **Personalizar → Habilidades → Adicionar**.
@@ -60,7 +60,7 @@ Codex Desktop:
 ```text
 $ognistie-skill: Revise este fluxo OAuth procurando falhas de autorização.
 ```
-### <img src="assets/codex-cli-jumping.svg" width="42" alt="Mascote animado do Codex CLI">  <img src="assets/claude-code-jumping.svg" width="42" alt="Mascote animado do Claude Code"> 
+### <img src="https://raw.githubusercontent.com/shanraisshan/codex-cli-best-practice/main/!/codex-jumping.svg" width="42" alt="Mascote animado do Codex CLI"> <img src="https://raw.githubusercontent.com/shanraisshan/claude-code-best-practice/main/!/claude-jumping.svg" width="42" alt="Mascote animado do Claude Code">
 
 ## Resposta
 
@@ -74,5 +74,3 @@ Motivo: <justificativa curta de qualidade, risco e custo>.
 ## Licença
 
 [MIT](LICENSE)
-
-Os mascotes animados possuem [atribuição de terceiros](THIRD_PARTY_NOTICES.md).

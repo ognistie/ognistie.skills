@@ -4,11 +4,15 @@ Skill de roteamento pré-tarefa: analisa uma tarefa e recomenda o modelo de meno
 
 A skill apenas recomenda o modelo. Ela não troca o modelo automaticamente e não executa a tarefa analisada.
 
-▶️ **[Assista à demonstração da ognistie.skills](assets/ognistie-skill-demo.mp4)**
+## Demonstração
+
+https://github.com/user-attachments/assets/3b821a6a-00bd-46a2-a3b6-e8e7fa797e73
+
+Se o player não estiver disponível, [abra o vídeo completo](assets/ognistie-skill-demo.mp4).
 
 ## Instalação
 
-### 🤖 OpenAI Codex
+### <img src="assets/codex-cli-jumping.svg" width="42" alt="Mascote animado do Codex CLI"> OpenAI Codex
 
 No Codex, instale a distribuição OpenAI pelo GitHub:
 
@@ -16,7 +20,7 @@ No Codex, instale a distribuição OpenAI pelo GitHub:
 $skill-installer Instale https://github.com/ognistie/ognistie.skills/tree/main/skills/codex/ognistie-skill
 ```
 
-### 🧠 Claude Code
+### <img src="assets/claude-code-jumping.svg" width="42" alt="Mascote animado do Claude Code"> Claude Code
 
 No Claude Code, adicione o marketplace e instale o plugin:
 
@@ -26,7 +30,7 @@ No Claude Code, adicione o marketplace e instale o plugin:
 /reload-plugins
 ```
 
-### 🖥️ Claude Desktop
+### <img src="assets/claude-code-jumping.svg" width="42" alt="Mascote animado do Claude Code"> Claude Desktop
 
 1. Baixe o pacote **[ognistie-skill-claude-desktop.zip](downloads/ognistie-skill-claude-desktop.zip)**.
 2. No Claude Desktop, abra **Personalizar → Habilidades → Adicionar**.
@@ -69,3 +73,5 @@ Motivo: <justificativa curta de qualidade, risco e custo>.
 ## Licença
 
 [MIT](LICENSE)
+
+Os mascotes animados possuem [atribuição de terceiros](THIRD_PARTY_NOTICES.md).

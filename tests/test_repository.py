@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import zipfile
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -28,6 +29,8 @@ PLATFORMS = {
     },
 }
 CLAUDE_MARKETPLACE = ROOT / ".claude-plugin" / "marketplace.json"
+CLAUDE_DESKTOP_ZIP = ROOT / "downloads" / "ognistie-skill-claude-desktop.zip"
+DEMO_VIDEO = ROOT / "assets" / "ognistie-skill-demo.mp4"
 
 
 def load_module(name: str, path: Path):
@@ -120,6 +123,26 @@ class DistributionStructureTests(unittest.TestCase):
             runtime["plugin_invocation"],
             f"/{plugin['name']}:ognistie-skill",
         )
+
+    def test_claude_desktop_download_is_portable_and_documented(self):
+        expected = {
+            "ognistie-skill/LICENSE.txt",
+            "ognistie-skill/SKILL.md",
+            "ognistie-skill/references/model-catalog.json",
+            "ognistie-skill/references/routing-policy.md",
+            "ognistie-skill/scripts/validate_routing_output.py",
+        }
+        with zipfile.ZipFile(CLAUDE_DESKTOP_ZIP) as archive:
+            names = set(archive.namelist())
+            self.assertEqual(names, expected)
+            self.assertIsNone(archive.testzip())
+            self.assertTrue(all("\\" not in name for name in names))
+            self.assertTrue(all(".." not in name.split("/") for name in names))
+
+        self.assertGreater(DEMO_VIDEO.stat().st_size, 0)
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("assets/ognistie-skill-demo.mp4", readme)
+        self.assertIn("downloads/ognistie-skill-claude-desktop.zip", readme)
 
     def test_shared_files_remain_identical(self):
         codex = PLATFORMS["codex"]["root"]

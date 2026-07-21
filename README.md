@@ -4,9 +4,11 @@ Skill de roteamento pré-tarefa: analisa uma tarefa e recomenda o modelo de meno
 
 A skill apenas recomenda o modelo. Ela não troca o modelo automaticamente e não executa a tarefa analisada.
 
+▶️ **[Assista à demonstração da ognistie.skills](assets/ognistie-skill-demo.mp4)**
+
 ## Instalação
 
-### OpenAI Codex
+### 🤖 OpenAI Codex
 
 No Codex, instale a distribuição OpenAI pelo GitHub:
 
@@ -14,7 +16,7 @@ No Codex, instale a distribuição OpenAI pelo GitHub:
 $skill-installer Instale https://github.com/ognistie/ognistie.skills/tree/main/skills/codex/ognistie-skill
 ```
 
-### Claude Code
+### 🧠 Claude Code
 
 No Claude Code, adicione o marketplace e instale o plugin:
 
@@ -24,20 +26,33 @@ No Claude Code, adicione o marketplace e instale o plugin:
 /reload-plugins
 ```
 
+### 🖥️ Claude Desktop
+
+1. Baixe o pacote **[ognistie-skill-claude-desktop.zip](downloads/ognistie-skill-claude-desktop.zip)**.
+2. No Claude Desktop, abra **Personalizar → Habilidades → Adicionar**.
+3. Selecione **Fazer upload de uma habilidade** e envie o arquivo ZIP.
+4. Ative a skill após o upload.
+
 ## Uso
 
 Invoque a skill novamente para cada tarefa que deseja rotear.
 
-No Codex:
+No 🤖 Codex:
 
 ```text
 $ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
 ```
 
-No Claude Code:
+No 🧠 Claude Code:
 
 ```text
 /ognistie-skill:ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
+```
+
+No 🖥️ Claude Desktop:
+
+```text
+/ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
 ```
 
 `/ognistie.skill` não é um comando válido. Use hífen e invoque a skill em cada nova tarefa.

@@ -60,9 +60,9 @@ Codex Desktop:
 ```text
 $ognistie-skill: Revise este fluxo OAuth procurando falhas de autorização.
 ```
-### <img src="assets/codex-cli-jumping.svg" width="42" alt="Mascote animado do Codex CLI"> OpenAI Codex 
+### <img src="assets/codex-cli-jumping.svg" width="42" alt="Mascote animado do Codex CLI"> 
 
-### <img src="assets/claude-code-jumping.svg" width="42" alt="Mascote animado do Claude Code"> Claude Deskt
+### <img src="assets/claude-code-jumping.svg" width="42" alt="Mascote animado do Claude Code"> 
 
 ## Resposta
 

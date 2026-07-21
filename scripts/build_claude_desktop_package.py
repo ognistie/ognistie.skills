@@ -12,6 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = REPO_ROOT / "skills" / "claude" / "ognistie-skill"
 DEFAULT_OUTPUT = REPO_ROOT / "downloads" / "ognistie-skill-claude-desktop.zip"
 PACKAGE_ROOT = "ognistie-skill"
+TEXT_SUFFIXES = {".json", ".md", ".py", ".txt", ".yaml", ".yml"}
 PACKAGE_FILES = (
     "LICENSE.txt",
     "SKILL.md",
@@ -20,6 +21,14 @@ PACKAGE_FILES = (
     "references/runtime.json",
     "scripts/validate_routing_output.py",
 )
+
+
+def canonical_file_bytes(source: Path) -> bytes:
+    data = source.read_bytes()
+    if source.suffix.lower() not in TEXT_SUFFIXES:
+        return data
+    text = data.decode("utf-8-sig")
+    return text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
 
 
 def archive_info(name: str) -> zipfile.ZipInfo:
@@ -51,7 +60,7 @@ def build_package(destination: Path = DEFAULT_OUTPUT) -> Path:
                 archive_name = f"{PACKAGE_ROOT}/{relative}"
                 archive.writestr(
                     archive_info(archive_name),
-                    source.read_bytes(),
+                    canonical_file_bytes(source),
                     compresslevel=9,
                 )
         temporary.replace(destination)

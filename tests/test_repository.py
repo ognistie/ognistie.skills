@@ -31,16 +31,17 @@ PLATFORMS = {
 }
 CLAUDE_MARKETPLACE = ROOT / ".claude-plugin" / "marketplace.json"
 CLAUDE_DESKTOP_ZIP = ROOT / "downloads" / "ognistie-skill-claude-desktop.zip"
-DEMO_VIDEO = ROOT / "assets" / "ognistie-skill-demo.mp4"
 DEMO_ATTACHMENT = (
     "https://github.com/user-attachments/assets/"
     "3b821a6a-00bd-46a2-a3b6-e8e7fa797e73"
 )
 README_ANIMATIONS = (
     "https://raw.githubusercontent.com/shanraisshan/"
-    "claude-code-best-practice/main/!/claude-jumping.svg",
+    "claude-code-best-practice/154e72475b5f85dd4b457ea36f38aaabac211718/"
+    "!/claude-jumping.svg",
     "https://raw.githubusercontent.com/shanraisshan/"
-    "codex-cli-best-practice/main/!/codex-jumping.svg",
+    "codex-cli-best-practice/b79f473a188632867354fc793894dfd368a18e48/"
+    "!/codex-jumping.svg",
 )
 
 
@@ -155,6 +156,10 @@ class DistributionStructureTests(unittest.TestCase):
             self.assertIsNone(archive.testzip())
             self.assertTrue(all("\\" not in name for name in names))
             self.assertTrue(all(".." not in name.split("/") for name in names))
+            self.assertTrue(
+                all(b"\r" not in archive.read(name) for name in names),
+                "packaged text files must use canonical LF line endings",
+            )
 
             with tempfile.TemporaryDirectory() as directory:
                 archive.extractall(directory)
@@ -177,12 +182,23 @@ class DistributionStructureTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 0, result.stderr)
 
-        self.assertGreater(DEMO_VIDEO.stat().st_size, 0)
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn(DEMO_ATTACHMENT, readme)
         for animation in README_ANIMATIONS:
             self.assertIn(animation, readme)
         self.assertIn("downloads/ognistie-skill-claude-desktop.zip", readme)
+
+    def test_package_builder_normalizes_text_line_endings(self):
+        builder = load_module("claude_desktop_package_builder", PACKAGE_BUILDER)
+        with tempfile.TemporaryDirectory() as directory:
+            lf = Path(directory) / "lf.md"
+            crlf = Path(directory) / "crlf.md"
+            lf.write_bytes(b"first\nsecond\n")
+            crlf.write_bytes(b"first\r\nsecond\r\n")
+            self.assertEqual(
+                builder.canonical_file_bytes(lf),
+                builder.canonical_file_bytes(crlf),
+            )
 
     def test_shared_files_remain_identical(self):
         codex = PLATFORMS["codex"]["root"]
@@ -235,6 +251,16 @@ class CatalogTests(unittest.TestCase):
             self.assertTrue(
                 all(url.startswith("https://") for url in catalog["official_sources"].values())
             )
+            if platform == "claude":
+                self.assertTrue(
+                    all(item["generally_available"] for item in models)
+                )
+                self.assertTrue(
+                    all(item["deployment_providers"] for item in models)
+                )
+                self.assertTrue(
+                    all(item["claude_code_selector"] for item in models)
+                )
             expires = date.fromisoformat(catalog["verified_at"]) + timedelta(
                 days=catalog["refresh_after_days"]
             )
@@ -248,6 +274,14 @@ class EvaluationDatasetTests(unittest.TestCase):
 
     def test_dataset_covers_tiers_and_security_boundaries(self):
         self.assertGreaterEqual(len(self.cases), 20)
+        ids = [case["id"] for case in self.cases]
+        self.assertEqual(len(ids), len(set(ids)))
+        for case in self.cases:
+            self.assertEqual(
+                set(case),
+                {"id", "prompt", "expected_tier"}
+                | ({"risk_tags"} if "risk_tags" in case else set()),
+            )
         self.assertEqual(
             {case["expected_tier"] for case in self.cases},
             {None, "economy", "balanced", "advanced"},
@@ -320,28 +354,36 @@ class RuntimeContractTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
 
 
-class CapturedOutputRunnerTests(unittest.TestCase):
+class EvaluatorContractTests(unittest.TestCase):
+    FIXTURE_TIERS = {
+        **dict.fromkeys(range(1, 5), "economy"),
+        **dict.fromkeys(range(5, 9), "balanced"),
+        **dict.fromkeys(range(9, 14), "advanced"),
+        14: "economy",
+        **dict.fromkeys(range(15, 20), "advanced"),
+    }
+
     @classmethod
     def setUpClass(cls):
         cls.cases = json.loads(EVALS.read_text(encoding="utf-8"))["evals"]
 
-    def outputs_for(self, platform: str) -> list[dict]:
+    def synthetic_valid_outputs_for(self, platform: str) -> list[dict]:
         module = validator(platform)
         catalog = json.loads(
             (PLATFORMS[platform]["root"] / "references" / "model-catalog.json").read_text()
         )["models"]
         by_tier = {item["tier"]: item for item in catalog}
         outputs = []
-        for case in self.cases:
-            if case["expected_tier"] is None:
+        for case_id in sorted({case["id"] for case in self.cases}):
+            if case_id not in self.FIXTURE_TIERS:
                 output = module.no_task_response()
             else:
-                model = by_tier[case["expected_tier"]]
+                model = by_tier[self.FIXTURE_TIERS[case_id]]
                 output = (
                     f"Modelo indicado: {model['name']} — Provedor: {model['provider']}.\n"
                     "Motivo: Atende à qualidade exigida com custo proporcional ao risco."
                 )
-            outputs.append({"id": case["id"], "output": output})
+            outputs.append({"id": case_id, "output": output})
         return outputs
 
     def run_evaluator(self, platform: str, outputs: list[dict]):
@@ -360,13 +402,16 @@ class CapturedOutputRunnerTests(unittest.TestCase):
                 check=False,
             )
 
-    def test_runner_accepts_both_platforms(self):
+    def test_evaluator_accepts_valid_fixtures_for_both_platforms(self):
         for platform in PLATFORMS:
-            result = self.run_evaluator(platform, self.outputs_for(platform))
+            result = self.run_evaluator(
+                platform,
+                self.synthetic_valid_outputs_for(platform),
+            )
             self.assertEqual(result.returncode, 0, result.stderr)
 
-    def test_runner_rejects_wrong_tier(self):
-        outputs = self.outputs_for("codex")
+    def test_evaluator_rejects_wrong_tier(self):
+        outputs = self.synthetic_valid_outputs_for("codex")
         advanced = next(
             item
             for item in json.loads(

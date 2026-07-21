@@ -2,5 +2,10 @@
   "platform": "Claude Code",
   "provider": "Anthropic",
   "invocation": "/ognistie-skill",
-  "plugin_invocation": "/ognistie-skill:ognistie-skill"
+  "plugin_invocation": "/ognistie-skill:ognistie-skill",
+  "deployment_provider": "user-environment",
+  "availability_policy": {
+    "source": "active Claude Code configuration and catalog deployment_providers",
+    "unknown_environment": "recommend only generally available models and do not claim confirmed account access"
+  }
 }

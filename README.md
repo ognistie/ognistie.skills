@@ -38,25 +38,31 @@ No Claude Code, adicione o marketplace e instale o plugin:
 
 Invoque a skill novamente para cada tarefa que deseja rotear.
 
-No 🤖 Codex:
+ Codex:
 
 ```text
 $ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
 ```
 
-No 🧠 Claude Code:
+Claude Code:
 
 ```text
 /ognistie-skill:ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
 ```
 
-No 🖥️ Claude Desktop:
+Claude Desktop:
 
 ```text
 /ognistie-skill Revise este fluxo OAuth procurando falhas de autorização.
 ```
 
-`/ognistie.skill` não é um comando válido. Use hífen e invoque a skill em cada nova tarefa.
+Codex Desktop:
+```text
+$ognistie-skill: Revise este fluxo OAuth procurando falhas de autorização.
+```
+### <img src="assets/codex-cli-jumping.svg" width="42" alt="Mascote animado do Codex CLI"> OpenAI Codex 
+
+### <img src="assets/claude-code-jumping.svg" width="42" alt="Mascote animado do Claude Code"> Claude Deskt
 
 ## Resposta
 

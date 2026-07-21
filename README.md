@@ -4,11 +4,8 @@ Skill de roteamento pré-tarefa: analisa uma tarefa e recomenda o modelo de meno
 
 A skill apenas recomenda o modelo. Ela não troca o modelo automaticamente e não executa a tarefa analisada.
 
-## Demonstração
 
 https://github.com/user-attachments/assets/3b821a6a-00bd-46a2-a3b6-e8e7fa797e73
-
-Se o player não estiver disponível, [abra o vídeo completo](assets/ognistie-skill-demo.mp4).
 
 ## Instalação
 

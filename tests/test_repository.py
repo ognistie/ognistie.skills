@@ -140,6 +140,7 @@ class DistributionStructureTests(unittest.TestCase):
             "ognistie-skill/SKILL.md",
             "ognistie-skill/references/model-catalog.json",
             "ognistie-skill/references/routing-policy.md",
+            "ognistie-skill/references/runtime.json",
             "ognistie-skill/scripts/validate_routing_output.py",
         }
         with zipfile.ZipFile(CLAUDE_DESKTOP_ZIP) as archive:
@@ -148,6 +149,27 @@ class DistributionStructureTests(unittest.TestCase):
             self.assertIsNone(archive.testzip())
             self.assertTrue(all("\\" not in name for name in names))
             self.assertTrue(all(".." not in name.split("/") for name in names))
+
+            with tempfile.TemporaryDirectory() as directory:
+                archive.extractall(directory)
+                skill_root = Path(directory) / "ognistie-skill"
+                output = Path(directory) / "output.txt"
+                output.write_text(
+                    "Envie novamente na mesma mensagem: "
+                    "/ognistie-skill <sua tarefa>.",
+                    encoding="utf-8",
+                )
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(skill_root / "scripts" / "validate_routing_output.py"),
+                        str(output),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
 
         self.assertGreater(DEMO_VIDEO.stat().st_size, 0)
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
